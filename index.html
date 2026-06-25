@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>陈氏医疗顾问</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #F5F7FA; color: #1a1a2e; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; padding: 48px 20px 80px;
+  }
+  .container { width: 100%; max-width: 720px; }
+  .header { text-align: center; margin-bottom: 40px; }
+  .brand { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .brand-icon {
+    width: 36px; height: 36px; background: linear-gradient(135deg, #6366F1, #4F46E5);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px; font-weight: 700;
+  }
+  .brand-name { font-size: 15px; font-weight: 600; color: #4338CA; letter-spacing: 0.5px; }
+  h1 { font-size: 34px; font-weight: 700; color: #0F172A; line-height: 1.2; margin-bottom: 12px; }
+  .subtitle { font-size: 15px; color: #64748B; line-height: 1.6; }
+  .card { background: #fff; border-radius: 16px; border: 1px solid #E2E8F0; padding: 24px; margin-bottom: 14px; }
+  .card-label { font-size: 12px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+  textarea {
+    width: 100%; min-height: 140px; border: 1px solid #E2E8F0; border-radius: 10px;
+    padding: 14px; font-size: 15px; color: #1a1a2e; background: #F8FAFC;
+    resize: vertical; outline: none; font-family: inherit; line-height: 1.7; transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: #6366F1; background: #fff; }
+  .example-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+  .example-label { font-size: 12px; color: #94A3B8; }
+  .example-tag {
+    font-size: 12px; padding: 4px 10px; border-radius: 20px; background: #F1F5F9;
+    color: #64748B; cursor: pointer; border: 1px solid #E2E8F0; transition: all 0.15s;
+  }
+  .example-tag:hover { background: #EEF2FF; color: #4338CA; border-color: #C7D2FE; }
+  .upload-area {
+    border: 2px dashed #E2E8F0; border-radius: 12px; padding: 28px 20px;
+    text-align: center; cursor: pointer; transition: all 0.2s; background: #F8FAFC; position: relative;
+  }
+  .upload-area:hover { border-color: #6366F1; background: #EEF2FF; }
+  .upload-area.has-image { border-color: #10B981; background: #F0FDF4; border-style: solid; }
+  .upload-icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-text { font-size: 15px; font-weight: 500; color: #475569; margin-bottom: 4px; }
+  .upload-hint { font-size: 13px; color: #94A3B8; }
+  .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .image-preview { display: none; margin-top: 12px; position: relative; }
+  .image-preview img { width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; border: 1px solid #E2E8F0; }
+  .remove-image {
+    position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.5);
+    color: white; border: none; border-radius: 50%; width: 28px; height: 28px;
+    font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .input-tabs { display: flex; margin-bottom: 16px; background: #F1F5F9; border-radius: 10px; padding: 4px; }
+  .input-tab {
+    flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: 500;
+    color: #64748B; cursor: pointer; border-radius: 8px; transition: all 0.15s;
+    border: none; background: none; font-family: inherit;
+  }
+  .input-tab.active { background: white; color: #4338CA; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .submit-btn {
+    width: 100%; height: 52px; background: linear-gradient(135deg, #6366F1, #4F46E5);
+    color: white; border: none; border-radius: 12px; font-size: 17px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.2s, transform 0.1s; font-family: inherit; margin-top: 4px;
+  }
+  .submit-btn:hover { opacity: 0.92; }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .loading { display: none; text-align: center; padding: 32px; color: #64748B; font-size: 15px; }
+  .loading-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
+  @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+  .spinner { width: 32px; height: 32px; border: 3px solid #E2E8F0; border-top-color: #6366F1; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .result-card { display: none; background: #fff; border-radius: 16px; border: 1px solid #E2E8F0; overflow: hidden; margin-top: 16px; }
+  .result-header { background: linear-gradient(135deg, #6366F1, #4F46E5); padding: 20px 28px; color: white; }
+  .result-header h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .result-header p { font-size: 13px; opacity: 0.8; }
+  .result-body { padding: 24px 28px; }
+  .risk-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 30px; font-size: 15px; font-weight: 600; margin-bottom: 24px; }
+  .risk-high { background: #FEE2E2; color: #991B1B; }
+  .risk-medium { background: #FEF3C7; color: #92400E; }
+  .risk-low { background: #D1FAE5; color: #065F46; }
+  .risk-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .risk-high .risk-dot { background: #EF4444; }
+  .risk-medium .risk-dot { background: #F59E0B; }
+  .risk-low .risk-dot { background: #10B981; }
+  .result-section { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #F1F5F9; }
+  .result-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .result-section-title { font-size: 12px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .result-section-content { font-size: 15px; color: #1E293B; line-height: 1.8; }
+  .finding-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+  .finding-dot { width: 6px; height: 6px; border-radius: 50%; background: #6366F1; margin-top: 8px; flex-shrink: 0; }
+  .question-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; background: #F8FAFC; border-radius: 10px; padding: 10px 14px; }
+  .question-num { font-size: 12px; font-weight: 700; color: #6366F1; background: #EEF2FF; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .error-msg { display: none; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 16px 20px; color: #991B1B; font-size: 14px; margin-bottom: 14px; }
+  .disclaimer { text-align: center; font-size: 12px; color: #94A3B8; margin-top: 24px; line-height: 1.6; }
+  .powered { text-align: center; font-size: 11px; color: #CBD5E1; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon">陈</div>
+      <span class="brand-name">陈氏医疗顾问</span>
+    </div>
+    <h1>一键看懂你的医疗报告</h1>
+    <p class="subtitle">CT · 化验单 · 病理报告 · 体检报告，AI 自动生成通俗中文解读</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">上传或输入报告</div>
+    <div class="input-tabs">
+      <button class="input-tab active" onclick="switchTab('text')">✏️ 粘贴文字</button>
+      <button class="input-tab" onclick="switchTab('image')">📷 拍照上传</button>
+    </div>
+    <div class="tab-panel active" id="tab-text">
+      <textarea id="reportText" placeholder="例如：右上肺结节较前增大，2.1cm → 2.8cm，伴少量胸腔积液。"></textarea>
+      <div class="example-tags">
+        <span class="example-label">示例：</span>
+        <span class="example-tag" onclick="fillExample(0)">CT 报告</span>
+        <span class="example-tag" onclick="fillExample(1)">血常规</span>
+        <span class="example-tag" onclick="fillExample(2)">病理报告</span>
+        <span class="example-tag" onclick="fillExample(3)">体检报告</span>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-image">
+      <div class="upload-area" id="uploadArea">
+        <input type="file" accept="image/*" capture="environment" onchange="handleImageUpload(event)" id="imageInput" />
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">拍照或从相册选择</div>
+        <div class="upload-hint">支持 JPG / PNG，手机可直接拍照</div>
+      </div>
+      <div class="image-preview" id="imagePreview">
+        <img id="previewImg" src="" alt="报告图片" />
+        <button class="remove-image" onclick="removeImage()">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+  <button class="submit-btn" onclick="analyzeReport()" id="submitBtn">生成解读</button>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <span>陈氏医疗顾问正在分析<span class="loading-dots"></span></span>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <h2>陈氏医疗顾问 · 解读结果</h2>
+      <p id="resultTime"></p>
+    </div>
+    <div class="result-body">
+      <div id="riskBadge"></div>
+      <div class="result-section">
+        <div class="result-section-title">总结</div>
+        <div class="result-section-content" id="summary"></div>
+      </div>
+      <div class="result-section">
+        <div class="result-section-title">关键发现</div>
+        <div id="findings"></div>
+      </div>
+      <div class="result-section">
+        <div class="result-section-title">建议向医生提问</div>
+        <div id="questions"></div>
+      </div>
+      <div class="result-section">
+        <div class="result-section-title">下一步建议</div>
+        <div class="result-section-content" id="nextSteps"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="disclaimer">⚠️ 本工具仅供参考，不构成医疗建议。所有医疗决策请咨询您的主治医师。</p>
+  <p class="powered">Powered by DeepSeek AI · 陈氏医疗顾问</p>
+</div>
+
+<script>
+const examples = [
+  "右上肺见结节影，大小约2.8cm×2.1cm，较2023年CT片增大（原2.1cm×1.8cm）。结节边缘见分叶及毛刺征。纵隔未见明显肿大淋巴结。右侧胸腔见少量液性密度影。印象：右上肺结节，恶性不除外，建议进一步检查。",
+  "白细胞 11.2×10⁹/L（参考范围4-10），中性粒细胞比例 82%（参考范围50-70%），淋巴细胞比例 12%（参考范围20-40%）。红细胞 4.5×10¹²/L，血红蛋白 138g/L，血小板 210×10⁹/L。",
+  "送检组织：右乳肿物穿刺活检。镜下所见：可见导管原位癌成分，ER(+++) PR(++) HER2(++) Ki-67约25%。诊断：右乳浸润性导管癌（II级）。",
+  "体检报告摘要：血压 145/92 mmHg（偏高）；空腹血糖 6.8 mmol/L（参考值 3.9-6.1，偏高）；总胆固醇 6.2 mmol/L（参考值 <5.2，偏高）；LDL 4.1 mmol/L（参考值 <3.4，偏高）；BMI 27.3（超重）；肝功能、肾功能正常。"
+];
+
+let uploadedImageBase64 = null;
+let uploadedMediaType = 'image/jpeg';
+let currentTab = 'text';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.input-tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'text') || (i === 1 && tab === 'image'));
+  });
+  document.getElementById('tab-text').classList.toggle('active', tab === 'text');
+  document.getElementById('tab-image').classList.toggle('active', tab === 'image');
+}
+
+function fillExample(i) {
+  switchTab('text');
+  document.getElementById('reportText').value = examples[i];
+}
+
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  uploadedMediaType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const dataUrl = ev.target.result;
+    uploadedImageBase64 = dataUrl.split(',')[1];
+    document.getElementById('previewImg').src = dataUrl;
+    document.getElementById('imagePreview').style.display = 'block';
+    document.getElementById('uploadArea').classList.add('has-image');
+    document.querySelector('#uploadArea .upload-text').textContent = '图片已选择，点击更换';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage() {
+  uploadedImageBase64 = null;
+  document.getElementById('previewImg').src = '';
+  document.getElementById('imagePreview').style.display = 'none';
+  document.getElementById('imageInput').value = '';
+  document.getElementById('uploadArea').classList.remove('has-image');
+  document.querySelector('#uploadArea .upload-text').textContent = '拍照或从相册选择';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('errorMsg').style.display = 'none';
+}
+
+async function analyzeReport() {
+  hideError();
+  const reportText = document.getElementById('reportText').value.trim();
+  const isImage = currentTab === 'image' && uploadedImageBase64;
+  const isText = currentTab === 'text' && reportText;
+
+  if (!isImage && !isText) {
+    showError(currentTab === 'image' ? '请先拍照或上传报告图片' : '请粘贴医疗报告内容');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('resultCard').style.display = 'none';
+
+  try {
+    const body = isImage
+      ? { type: 'image', image: uploadedImageBase64, mediaType: uploadedMediaType }
+      : { type: 'text', text: reportText };
+
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || `请求失败 (${response.status})`);
+    }
+
+    const result = await response.json();
+    renderResult(result);
+
+  } catch (err) {
+    showError('解析失败：' + err.message);
+  } finally {
+    btn.disabled = false;
+    document.getElementById('loading').style.display = 'none';
+  }
+}
+
+function renderResult(r) {
+  const now = new Date();
+  document.getElementById('resultTime').textContent =
+    `生成时间：${now.toLocaleDateString('zh-CN')} ${now.toLocaleTimeString('zh-CN')}`;
+
+  const riskMap = {
+    '高': { cls: 'risk-high', label: '高风险，请尽快就医' },
+    '中': { cls: 'risk-medium', label: '中等风险，建议关注' },
+    '低': { cls: 'risk-low', label: '低风险，定期复查' }
+  };
+  const risk = riskMap[r.risk_level] || riskMap['中'];
+  document.getElementById('riskBadge').innerHTML =
+    `<div class="risk-badge ${risk.cls}"><div class="risk-dot"></div>${r.risk_level}风险 · ${risk.label}</div>`;
+
+  document.getElementById('summary').textContent = r.summary;
+
+  document.getElementById('findings').innerHTML = r.findings.map(f =>
+    `<div class="finding-item"><div class="finding-dot"></div><span style="font-size:15px;color:#1E293B;line-height:1.7">${f}</span></div>`
+  ).join('');
+
+  document.getElementById('questions').innerHTML = r.questions.map((q, i) =>
+    `<div class="question-item"><div class="question-num">${i+1}</div><span style="font-size:14px;color:#334155;line-height:1.7">${q}</span></div>`
+  ).join('');
+
+  document.getElementById('nextSteps').textContent = r.next_steps;
+
+  const card = document.getElementById('resultCard');
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
