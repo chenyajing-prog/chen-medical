@@ -29,30 +29,41 @@ export default async function handler(req) {
 {"risk_level":"高/中/低","summary":"1-2句话总结核心发现","findings":["发现1","发现2","发现3"],"questions":["建议问医生的问题1","问题2","问题3"],"next_steps":"建议的下一步行动"}
 要求：通俗易懂，语气温和，只返回JSON，不要任何其他内容。`;
 
-  const userContent = type === 'image'
-    ? [
-        { type: "image_url", image_url: { url: `data:${mediaType};base64,${image}` } },
-        { type: "text", text: "请分析这张医疗报告图片，按要求返回JSON。" }
-      ]
-    : `请分析以下医疗报告内容：\n\n${text}`;
-
   try {
+    let requestBody;
+
+    if (type === 'image') {
+      // 图片模式：先用文字描述告诉模型这是图片内容
+      requestBody = {
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: systemContent },
+          { role: 'user', content: `这是一张医疗报告图片的base64内容，请根据图片内容进行分析。图片数据：data:${mediaType};base64,${image}` }
+        ],
+        max_tokens: 1000,
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
+      };
+    } else {
+      requestBody = {
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: systemContent },
+          { role: 'user', content: `请分析以下医疗报告内容：\n\n${text}` }
+        ],
+        max_tokens: 1000,
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
+      };
+    }
+
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: systemContent },
-          { role: 'user', content: userContent }
-        ],
-        max_tokens: 1000,
-        temperature: 0.3,
-        response_format: { type: 'json_object' }
-      })
+      body: JSON.stringify(requestBody)
     });
 
     const data = await response.json();
