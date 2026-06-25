@@ -121,14 +121,7 @@
     </div>
     <div class="tab-panel active" id="tab-text">
       <textarea id="reportText" placeholder="例如：右上肺结节较前增大，2.1cm → 2.8cm，伴少量胸腔积液。"></textarea>
-      <div class="example-tags">
-        <span class="example-label">示例：</span>
-        <span class="example-tag" onclick="fillExample(0)">CT 报告</span>
-        <span class="example-tag" onclick="fillExample(1)">血常规</span>
-        <span class="example-tag" onclick="fillExample(2)">病理报告</span>
-        <span class="example-tag" onclick="fillExample(3)">体检报告</span>
       </div>
-    </div>
     <div class="tab-panel" id="tab-image">
       <div class="upload-area" id="uploadArea">
         <input type="file" accept="image/*" capture="environment" onchange="handleImageUpload(event)" id="imageInput" />
@@ -154,6 +147,7 @@
   <div class="result-card" id="resultCard">
     <div class="result-header">
       <h2>陈氏医疗顾问 · 解读结果</h2>
+      <p id="reportType" style="font-size:13px;opacity:0.9;margin-bottom:2px;"></p>
       <p id="resultTime"></p>
     </div>
     <div class="result-body">
@@ -165,6 +159,10 @@
       <div class="result-section">
         <div class="result-section-title">关键发现</div>
         <div id="findings"></div>
+      </div>
+      <div class="result-section" id="medicationsSection" style="display:none;">
+        <div class="result-section-title">💊 用药说明</div>
+        <div id="medications"></div>
       </div>
       <div class="result-section">
         <div class="result-section-title">建议向医生提问</div>
@@ -299,6 +297,9 @@ function renderResult(r) {
   document.getElementById('riskBadge').innerHTML =
     `<div class="risk-badge ${risk.cls}"><div class="risk-dot"></div>${r.risk_level}风险 · ${risk.label}</div>`;
 
+  if (r.report_type) {
+    document.getElementById('reportType').textContent = '📄 ' + r.report_type;
+  }
   document.getElementById('summary').textContent = r.summary;
 
   document.getElementById('findings').innerHTML = r.findings.map(f =>
@@ -309,6 +310,18 @@ function renderResult(r) {
     `<div class="question-item"><div class="question-num">${i+1}</div><span style="font-size:14px;color:#334155;line-height:1.7">${q}</span></div>`
   ).join('');
 
+  // Medications
+  if (r.medications && r.medications.length > 0) {
+    document.getElementById('medicationsSection').style.display = 'block';
+    document.getElementById('medications').innerHTML = r.medications.map(m => {
+      const parts = m.split('：');
+      const name = parts[0] || m;
+      const detail = parts.slice(1).join('：') || '';
+      return `<div class="question-item"><div style="flex:1"><div style="font-weight:600;color:#1E293B;font-size:14px;margin-bottom:4px">${name}</div>${detail ? `<div style="font-size:13px;color:#64748B;line-height:1.6">${detail}</div>` : ''}</div></div>`;
+    }).join('');
+  } else {
+    document.getElementById('medicationsSection').style.display = 'none';
+  }
   document.getElementById('nextSteps').textContent = r.next_steps;
 
   const card = document.getElementById('resultCard');
