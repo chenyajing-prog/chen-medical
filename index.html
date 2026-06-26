@@ -2,8 +2,15 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4F46E5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="陈家健康助手">
+<link rel="apple-touch-icon" href="/icon-192.svg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>陈氏医疗顾问</title>
+<title>陈家健康助手</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -108,9 +115,9 @@
   <div class="header">
     <div class="brand">
       <div class="brand-icon">陈</div>
-      <span class="brand-name">陈氏医疗顾问</span>
+      <span class="brand-name">陈家健康助手</span>
     </div>
-    <h1>一键看懂你的医疗报告</h1>
+    <h1>一键看懂你的医疗报告和用药说明</h1>
     <p class="subtitle">帮你看懂报告 · 准备好问医生的问题</p>
   </div>
 
@@ -147,7 +154,7 @@
 
   <div class="result-card" id="resultCard">
     <div class="result-header">
-      <h2>陈氏医疗顾问 · 解读结果</h2>
+      <h2>陈家健康助手 · 解读结果</h2>
       <p id="reportType" style="font-size:13px;opacity:0.9;margin-bottom:2px;"></p>
       <p id="resultTime"></p>
     </div>
@@ -335,6 +342,13 @@ function renderResult(r) {
   const card = document.getElementById('resultCard');
   card.style.display = 'block';
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
 }
 </script>
 </body>
