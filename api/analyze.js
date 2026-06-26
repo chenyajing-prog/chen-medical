@@ -29,7 +29,8 @@ export default async function handler(req) {
 请自动判断文件类型，然后严格以JSON格式返回：
 {
   "report_type": "报告类型",
-  "risk_level": "高/中/低",
+  "urgency": "根据报告内容给出一句话行动建议，例如：'建议3个月内复查' / '建议1个月内就诊' / '建议尽快就医' / '定期复查即可，暂无需特殊处理'",
+  "urgency_level": "low/medium/high",
   "summary": "用大白话说：这份报告最重要的发现是什么，患者最需要知道什么",
   "findings": [
     "【发现】具体数值或描述 → 【解释】这意味着什么（用大白话）→ 【提示】需要注意或排除什么"
@@ -40,10 +41,8 @@ export default async function handler(req) {
 }
 
 重要原则：
-- 风险等级评定标准：
- - 高：需要立即就医或有潜在危险的发现（如恶性肿瘤可能、严重感染、心脏问题等）
- - 中：有异常发现但不紧急，需要在1-4周内就医随访
- - 低：轻微异常或正常范围边缘，定期复查即可，无需紧急处理
+- urgency 必须是具体可执行的一句话，不要用"高/中/低"这种模糊标签
+- urgency_level 只用于界面颜色显示：low=绿色、medium=黄色、high=红色
 - 对每个异常发现，结合患者年龄、性别、临床背景进行推断
 - 说明该异常"最可能是什么"、"需要排除什么严重情况"
 - 所有具体数值（大小、厚度、浓度）必须保留，并注明是否在正常范围
@@ -55,7 +54,6 @@ export default async function handler(req) {
     let reportText = text;
 
     if (type === 'image') {
-      // 第一步：GPT-4o OCR 提取图片文字
       if (!openaiKey) {
         return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), { status: 500 });
       }
@@ -83,10 +81,7 @@ export default async function handler(req) {
                     detail: 'high'
                   }
                 },
-                {
-                  type: 'text',
-                  text: '请提取这张医疗文件图片中的所有文字内容。'
-                }
+                { type: 'text', text: '请提取这张医疗文件图片中的所有文字内容。' }
               ]
             }
           ],
@@ -99,11 +94,9 @@ export default async function handler(req) {
       if (!ocrResponse.ok) {
         return new Response(JSON.stringify({ error: ocrData.error?.message || 'OCR失败' }), { status: 500 });
       }
-
       reportText = ocrData.choices[0].message.content;
     }
 
-    // 第二步：DeepSeek 分析文字
     if (!deepseekKey) {
       return new Response(JSON.stringify({ error: 'DeepSeek API key not configured' }), { status: 500 });
     }
