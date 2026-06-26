@@ -141,11 +141,13 @@
           <input type="file" accept="image/*" onchange="handleImageUpload(event)" style="display:none" />
         </label>
       </div>
-      <div class="upload-area" id="uploadArea" style="display:none">
-        <input type="file" accept="image/*" onchange="handleImageUpload(event)" id="imageInput" style="display:none"/>
-      <div class="image-preview" id="imagePreview">
-        <img id="previewImg" src="" alt="报告图片" />
-        <button class="remove-image" onclick="removeImage()">✕</button>
+      <div id="uploadArea" style="border:2px dashed #E2E8F0;border-radius:12px;padding:20px;text-align:center;background:#F8FAFC;">
+        <div style="font-size:15px;color:#94A3B8;">点击上方按钮拍照或选择图片</div>
+      </div>
+      <div id="imagePreview" style="display:none;margin-top:12px;position:relative;">
+        <img id="previewImg" src="" alt="报告图片" style="width:100%;max-height:300px;object-fit:contain;border-radius:8px;border:1px solid #E2E8F0;" />
+        <button onclick="removeImage()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;">✕</button>
+        <div style="text-align:center;margin-top:8px;font-size:13px;color:#10B981;font-weight:500;">✅ 图片已选择</div>
       </div>
     </div>
   </div>
@@ -232,8 +234,7 @@ function handleImageUpload(e) {
     uploadedImageBase64 = dataUrl.split(',')[1];
     document.getElementById('previewImg').src = dataUrl;
     document.getElementById('imagePreview').style.display = 'block';
-    document.getElementById('uploadArea').classList.add('has-image');
-    document.querySelector('#uploadArea .upload-text').textContent = '图片已选择，点击更换';
+    document.getElementById('uploadArea').style.display = 'none';
   };
   reader.readAsDataURL(file);
 }
@@ -242,9 +243,7 @@ function removeImage() {
   uploadedImageBase64 = null;
   document.getElementById('previewImg').src = '';
   document.getElementById('imagePreview').style.display = 'none';
-  document.getElementById('imageInput').value = '';
-  document.getElementById('uploadArea').classList.remove('has-image');
-  document.querySelector('#uploadArea .upload-text').textContent = '拍照或从相册选择';
+  document.getElementById('uploadArea').style.display = 'block';
 }
 
 function showError(msg) {
