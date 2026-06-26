@@ -111,7 +111,7 @@
       <span class="brand-name">陈氏医疗顾问</span>
     </div>
     <h1>一键看懂你的医疗报告</h1>
-    <p class="subtitle">CT · 化验单 · 病理报告 · 体检报告，AI 自动生成通俗中文解读</p>
+    <p class="subtitle">帮你看懂报告 · 准备好问医生的问题</p>
   </div>
 
   <div class="card">
@@ -128,7 +128,7 @@
         <input type="file" accept="image/*" capture="environment" onchange="handleImageUpload(event)" id="imageInput" />
         <div class="upload-icon">📷</div>
         <div class="upload-text">拍照或从相册选择</div>
-        <div class="upload-hint">支持 JPG / PNG，手机可直接拍照</div>
+        <div class="upload-hint">支持 JPG / PNG · 图片越清晰，解读越准确</div>
       </div>
       <div class="image-preview" id="imagePreview">
         <img id="previewImg" src="" alt="报告图片" />
@@ -142,7 +142,7 @@
 
   <div class="loading" id="loading">
     <div class="spinner"></div>
-    <span>陈氏医疗顾问正在分析<span class="loading-dots"></span></span>
+    <span>正在识别报告内容，请稍候<span class="loading-dots"></span></span>
   </div>
 
   <div class="result-card" id="resultCard">
@@ -152,6 +152,9 @@
       <p id="resultTime"></p>
     </div>
     <div class="result-body">
+      <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:14px;color:#92400E;line-height:1.6;">
+        ⚠️ <strong>温馨提示：</strong>本解读仅供参考，不构成医疗诊断。请携带报告就医，由医生做最终判断。
+      </div>
       <div id="riskBadge"></div>
       <div class="result-section">
         <div class="result-section-title">总结</div>
@@ -166,7 +169,7 @@
         <div id="medications"></div>
       </div>
       <div class="result-section">
-        <div class="result-section-title">建议向医生提问</div>
+        <div class="result-section-title" style="color:#4338CA;font-size:16px;">💬 去看医生时，这样问</div>
         <div id="questions"></div>
       </div>
       <div class="result-section">
