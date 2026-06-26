@@ -43,19 +43,20 @@ export default async function handler(req) {
 - 对每个异常发现，结合患者年龄、性别、临床背景进行推断
 - 说明该异常"最可能是什么"、"需要排除什么严重情况"
 - 所有具体数值（大小、厚度、浓度）必须保留，并注明是否在正常范围
+- 如果不是处方/用药文件，medications 返回空数组 []
 - 语气像关心患者的家庭医生，温和但不回避重要信息
 - 只返回JSON，不要任何其他内容`;
 
   try {
-    let result;
+    let reportText = text;
 
     if (type === 'image') {
-      // 图片模式：用 OpenAI GPT-4o
+      // 第一步：GPT-4o OCR 提取图片文字
       if (!openaiKey) {
         return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), { status: 500 });
       }
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const ocrResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +65,10 @@ export default async function handler(req) {
         body: JSON.stringify({
           model: 'gpt-4o',
           messages: [
-            { role: 'system', content: systemContent },
+            {
+              role: 'system',
+              content: '你是一个医疗文件OCR助手。请完整提取图片中所有文字内容，保持原有格式和结构，不要遗漏任何数值、单位、专业术语。只输出提取的文字，不要添加任何解释或评论。'
+            },
             {
               role: 'user',
               content: [
@@ -77,55 +81,54 @@ export default async function handler(req) {
                 },
                 {
                   type: 'text',
-                  text: '请分析这张医疗文件图片，按要求返回JSON。'
+                  text: '请提取这张医疗文件图片中的所有文字内容。'
                 }
               ]
             }
           ],
-          max_tokens: 1500,
-          temperature: 0.3,
-          response_format: { type: 'json_object' }
+          max_tokens: 2000,
+          temperature: 0
         })
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        return new Response(JSON.stringify({ error: data.error?.message || 'OpenAI请求失败' }), { status: 500 });
-      }
-      const resultText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
-      result = JSON.parse(resultText);
-
-    } else {
-      // 文字模式：用 DeepSeek
-      if (!deepseekKey) {
-        return new Response(JSON.stringify({ error: 'DeepSeek API key not configured' }), { status: 500 });
+      const ocrData = await ocrResponse.json();
+      if (!ocrResponse.ok) {
+        return new Response(JSON.stringify({ error: ocrData.error?.message || 'OCR失败' }), { status: 500 });
       }
 
-      const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${deepseekKey}`
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            { role: 'system', content: systemContent },
-            { role: 'user', content: `请分析以下医疗文件内容：\n\n${text}` }
-          ],
-          max_tokens: 1500,
-          temperature: 0.3,
-          response_format: { type: 'json_object' }
-        })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        return new Response(JSON.stringify({ error: data.error?.message || 'DeepSeek请求失败' }), { status: 500 });
-      }
-      const resultText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
-      result = JSON.parse(resultText);
+      reportText = ocrData.choices[0].message.content;
     }
+
+    // 第二步：DeepSeek 分析文字
+    if (!deepseekKey) {
+      return new Response(JSON.stringify({ error: 'DeepSeek API key not configured' }), { status: 500 });
+    }
+
+    const analyzeResponse = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${deepseekKey}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: systemContent },
+          { role: 'user', content: `请分析以下医疗文件内容：\n\n${reportText}` }
+        ],
+        max_tokens: 1500,
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    const analyzeData = await analyzeResponse.json();
+    if (!analyzeResponse.ok) {
+      return new Response(JSON.stringify({ error: analyzeData.error?.message || 'DeepSeek请求失败' }), { status: 500 });
+    }
+
+    const resultText = analyzeData.choices[0].message.content.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(resultText);
 
     return new Response(JSON.stringify(result), {
       headers: {
