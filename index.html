@@ -131,12 +131,18 @@
       <textarea id="reportText" placeholder="例如：右上肺结节较前增大，2.1cm → 2.8cm，伴少量胸腔积液。也可以粘贴药品说明或处方内容。"></textarea>
       </div>
     <div class="tab-panel" id="tab-image">
-      <div class="upload-area" id="uploadArea">
-        <input type="file" accept="image/*" capture="environment" onchange="handleImageUpload(event)" id="imageInput" />
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">拍照或从相册选择</div>
-        <div class="upload-hint">支持 JPG / PNG · 图片越清晰，解读越准确</div>
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <label style="flex:1;background:linear-gradient(135deg,#6366F1,#4F46E5);color:white;border-radius:12px;padding:18px;text-align:center;cursor:pointer;font-size:17px;font-weight:600;">
+          📷 拍照
+          <input type="file" accept="image/*" capture="environment" onchange="handleImageUpload(event)" style="display:none" />
+        </label>
+        <label style="flex:1;background:#F1F5F9;color:#334155;border:2px solid #E2E8F0;border-radius:12px;padding:18px;text-align:center;cursor:pointer;font-size:17px;font-weight:600;">
+          🖼️ 相册
+          <input type="file" accept="image/*" onchange="handleImageUpload(event)" style="display:none" />
+        </label>
       </div>
+      <div class="upload-area" id="uploadArea" style="display:none">
+        <input type="file" accept="image/*" onchange="handleImageUpload(event)" id="imageInput" style="display:none"/>
       <div class="image-preview" id="imagePreview">
         <img id="previewImg" src="" alt="报告图片" />
         <button class="remove-image" onclick="removeImage()">✕</button>
